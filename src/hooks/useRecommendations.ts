@@ -59,7 +59,11 @@ export function useRecommendations(): UseRecommendationsResult {
         }
       },
       onerror(err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        const msg = err instanceof Error ? err.message : String(err)
+        const friendly = msg.includes('fetch') || msg.includes('connect') || msg.includes('network')
+          ? '連線失敗'
+          : msg
+        setError(friendly)
         setIsLoading(false)
         throw err // stop retrying
       },

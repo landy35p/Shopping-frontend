@@ -2,18 +2,33 @@ import type { Product } from '../hooks/useRecommendations'
 
 interface Props {
   product: Product
+  index?: number
 }
 
-export function ProductCard({ product }: Props) {
+export function ProductCard({ product, index = 0 }: Props) {
   return (
-    <div style={{
-      border: '1px solid #e0e0e0',
-      borderRadius: 8,
-      padding: 12,
-      background: '#fff',
-      minWidth: 160,
-      maxWidth: 200,
-    }}>
+    <div
+      className="card-appear"
+      style={{
+        border: '1px solid #e0e0e0',
+        borderRadius: 8,
+        padding: 12,
+        background: '#fff',
+        minWidth: 160,
+        maxWidth: 200,
+        cursor: 'pointer',
+        transition: 'box-shadow 0.2s, transform 0.2s',
+        animationDelay: `${index * 70}ms`,
+      }}
+      onMouseEnter={e => {
+        ;(e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'
+        ;(e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'
+      }}
+      onMouseLeave={e => {
+        ;(e.currentTarget as HTMLElement).style.boxShadow = 'none'
+        ;(e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
+      }}
+    >
       <div style={{
         width: '100%',
         height: 120,
