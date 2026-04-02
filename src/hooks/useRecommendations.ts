@@ -21,6 +21,7 @@ export interface UseRecommendationsResult {
   isLoading: boolean
   error: string | null
   fetch: (userId: string) => void
+  fetchByPrompt: (prompt: string) => void
   reset: () => void
 }
 
@@ -70,5 +71,36 @@ export function useRecommendations(): UseRecommendationsResult {
     })
   }, [reset])
 
-  return { products, reasoning, isLoading, error, fetch, reset }
+  const fetchByPrompt = useCallback((prompt: string) => {
+    reset()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    setIsLoading(true)
+
+    fetchEventSource(apiUrl(`/api/recommendations/stream/search?prompt=${encodeURIComponent(prompt)}`), {
+      signal: ctrl.signal,
+      onmessage(ev) {
+        if (ev.event === 'product') {
+          const p: Product = JSON.parse(ev.data)
+          setProducts(prev => [...prev, p])
+        } else if (ev.event === 'reasoning') {
+          const r: ReasoningChunk = JSON.parse(ev.data)
+          setReasoning(prev => prev + r.text)
+        } else if (ev.event === 'done') {
+          setIsLoading(false)
+        }
+      },
+      onerror(err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        const friendly = msg.includes('fetch') || msg.includes('connect') || msg.includes('network')
+          ? '連線失敗'
+          : msg
+        setError(friendly)
+        setIsLoading(false)
+        throw err // stop retrying
+      },
+    })
+  }, [reset])
+
+  return { products, reasoning, isLoading, error, fetch, fetchByPrompt, reset }
 }
