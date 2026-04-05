@@ -14,16 +14,7 @@ export function HomePage() {
   const [submittedPrompt, setSubmittedPrompt] = useState('')
   const { products, reasoning, isLoading, error, fetch: fetchRec, fetchByPrompt, reset } = useRecommendations()
 
-  // 切換用戶時重新請求（僅限 user 模式）
-  useEffect(() => {
-    if (mode !== 'user') return
-    reset()
-    setSectionKey(k => k + 1)
-    fetchRec(activeUserId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUserId, mode])
-
-  // 切換到 user 模式時主動觸發
+  // 切換用戶 或 切換模式時統一處理（合併避免重複觸發）
   useEffect(() => {
     if (mode === 'user') {
       reset()
@@ -35,13 +26,14 @@ export function HomePage() {
       setSubmittedPrompt('')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode])
+  }, [activeUserId, mode])
 
   const activeUser = MOCK_USERS.find(u => u.id === activeUserId)
 
   const handleSearch = () => {
     const trimmed = promptInput.trim()
     if (!trimmed) return
+    reset()
     setSubmittedPrompt(trimmed)
     setSectionKey(k => k + 1)
     fetchByPrompt(trimmed)

@@ -41,13 +41,14 @@ export function useRecommendations(): UseRecommendationsResult {
   }, [])
 
   const fetch = useCallback((userId: string) => {
-    reset()
+    // reset 由呼叫方負責，這裡只負責建立連線
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setIsLoading(true)
 
     fetchEventSource(apiUrl(`/api/recommendations/stream?userId=${encodeURIComponent(userId)}`), {
       signal: ctrl.signal,
+      openWhenHidden: true, // 防止切換分頁時自動重連並重複送出請求
       onmessage(ev) {
         if (ev.event === 'product') {
           const p: Product = JSON.parse(ev.data)
@@ -69,16 +70,17 @@ export function useRecommendations(): UseRecommendationsResult {
         throw err // stop retrying
       },
     })
-  }, [reset])
+  }, [])
 
   const fetchByPrompt = useCallback((prompt: string) => {
-    reset()
+    // reset 由呼叫方負責，這裡只負責建立連線
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setIsLoading(true)
 
     fetchEventSource(apiUrl(`/api/recommendations/stream/search?prompt=${encodeURIComponent(prompt)}`), {
       signal: ctrl.signal,
+      openWhenHidden: true, // 防止切換分頁時自動重連並重複送出請求
       onmessage(ev) {
         if (ev.event === 'product') {
           const p: Product = JSON.parse(ev.data)
@@ -100,7 +102,7 @@ export function useRecommendations(): UseRecommendationsResult {
         throw err // stop retrying
       },
     })
-  }, [reset])
+  }, [])
 
   return { products, reasoning, isLoading, error, fetch, fetchByPrompt, reset }
 }
